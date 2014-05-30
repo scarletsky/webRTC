@@ -1,59 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-<title>Demo</title>
-<style type="text/css">
-</style>
+    <title>Very simple WebRTC application with a Node.js signaling server</title>
 </head>
 <body>
-    <video id="v"></video>
-<script type="text/javascript">
-    navigator.getUserMedia = navigator.getUserMedia ||
-                            navigator.webkitGetUserMedia ||
-                            navigator.mozGetUserMedia ||
-                            navigator.msGetUserMedia;
-    window.URL= window.URL|| window.webkitURL|| window.mozURL|| window.msURL;
-
-    if(!navigator.getUserMedia){
-        alert('Native device media streaming (getUserMedia) not supported in this browser.');
-    }else{
-        console.log('Let\'s go to play webRTC~');
-    }
-
-    var video = document.getElementById('v');
-
-    video.addEventListener('loadeddata', function(){
-        console.log('video loadeddata: ' + video.videoWidth + '*' + video.videoHeight);
-    })
-
-    navigator.getUserMedia({
-        video: {
-            mandatory: {
-                minWidth: 640,
-                minHeight: 480 
-            }
-        },
-        audio: true
-    }, successCallback, errorCallback);
-
-    function successCallback(stream){
-        console.log(stream);
-        if(video.mozSrcObject !== undefined){
-            video.mozSrcObject = stream;
-        }else{
-            video.src = (window.URL && window.URL.createObjectURL(stream)) || stream;
-        }
-
-        video.play();
-    }
-
-    function errorCallback(err){
-        alert('errorCallback:' + err);
-    }
-
-
-</script>
+    <div id='mainDiv'>
+        <table border="1" width="100%">
+            <tr>
+                <th>
+                    Local video
+                </th>
+                <th>
+                    Remote video
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    <video id="localVideo" autoplay></video>
+                </td>
+                <td>
+                    <video id="remoteVideo" autoplay></video>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <textarea rows="4" cols="60" id="dataChannelSend" disabled placeholder="This will be enabled once the data channel is up...">
+                    </textarea>
+                </td>
+                <td align="center">
+                    <textarea rows="4" cols="60" id="dataChannelReceive" disabled>
+                    </textarea>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <button id="sendButton" disabled>Send</button>
+                </td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <script src='/socket.io/socket.io.js'></script>
+    <script src='js/adapter.js'></script>
+    <script src='js/webrtc.js'></script>
 </body>
+
 </html>
