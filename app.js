@@ -4,7 +4,7 @@ var http = require('http');
 var express = require('express');
 var app = express();
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(function(req, res, next){
+app.use(function(req, res, next) {
     console.log('Add access alllow');
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Credentials', true);
@@ -15,40 +15,37 @@ app.use(function(req, res, next){
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 
-// Let's start managing connections...
+var CM = 'chatroom';
+
 io.on('connection', function(socket) {
-    // Handle 'message' messages
-    socket.on('message', function(message) {
-        log('S --> got message: ', message);
-        // channel-only broadcast...
-        socket.broadcast.to(message.channel).emit('message', message);
-    });
-    // Handle 'create or join' messages
-    socket.on('create or join', function(room) {
-        var numClients = io.sockets.clients(room).length;
-        log('S --> Room ' + room + ' has ' + numClients + ' client(s)');
-        log('S --> Request to create or join room', room);
-        // First client joining...
-        if (numClients == 0) {
-            socket.join(room);
-            socket.emit('created', room);
-        } else if (numClients == 1) {
-            // Second client joining...
-            io.sockets.in(room).emit('join', room);
-            socket.join(room);
-            socket.emit('joined', room);
-        } else { // max two clients
-            socket.emit('full', room);
+    socket.on('online', function(name) {
+        socket.name = name;
+        socket.join(CM);
+        var data = [];
+        clients = io.sockets.clients(CM);
+        // console.log(clients);
+        for(var i in clients){
+            data.push({
+                id: clients[i].id,
+                name: clients[i].name
+            })
         }
+        socket.broadcast.to(CM).emit('online', JSON.stringify(data));
+        socket.emit('online', JSON.stringify(data));
     });
 
-    function log() {
-        var array = [">>> "];
-        for (var i = 0; i < arguments.length; i++) {
-            array.push(arguments[i]);
+    socket.on('disconnect', function(){
+        socket.leave(CM);
+        var data = [];
+        clients = io.sockets.clients(CM);
+        for(var i in clients){
+            data.push({
+                id: clients[i].id,
+                name: clients[i].name
+            })
         }
-        socket.emit('log', array);
-    }
+        socket.broadcast.to(CM).emit('offline', JSON.stringify(data));       
+    });
 });
 
 
