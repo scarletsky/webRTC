@@ -1,5 +1,5 @@
 {
-  "name": "webrtc-demo",
+  "name": "Video Chat",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "express": "~4.2.0",
-    "socket.io": "*"
+    "socket.io": "~0.9.17"
   }
 }

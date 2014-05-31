@@ -8,8 +8,8 @@ var RTCSessionDescription = RTCSessionDescription;
 var RTCIceCandidate = RTCIceCandidate;
 
 
-// var name = trim(prompt('Enter name:'));
-var name = 'visitor ' + Math.floor(Math.random() * 10);
+var name = trim(prompt('Enter name:')) || 'visitor ' + Math.floor(Math.random() * 10);
+// var name = 'visitor ' + Math.floor(Math.random() * 10);
 var started = false;
 var requestSocketId;
 var initiator = false;
