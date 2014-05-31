@@ -22,7 +22,7 @@ io.on('connection', function(socket) {
         socket.name = name;
         socket.join(CM);
         var data = [];
-        clients = io.sockets.clients(CM);
+        var clients = io.sockets.clients(CM);
         // console.log(clients);
         for(var i in clients){
             data.push({
@@ -37,7 +37,7 @@ io.on('connection', function(socket) {
     socket.on('disconnect', function(){
         socket.leave(CM);
         var data = [];
-        clients = io.sockets.clients(CM);
+        var clients = io.sockets.clients(CM);
         for(var i in clients){
             data.push({
                 id: clients[i].id,
@@ -46,6 +46,51 @@ io.on('connection', function(socket) {
         }
         socket.broadcast.to(CM).emit('offline', JSON.stringify(data));       
     });
+
+    socket.on('chat request', function(data){
+        console.log('====   chat request');
+        // console.log(socket.id)
+        var clients = io.sockets.clients(CM);
+        for(var i in clients){
+            if(clients[i].id === data.id){
+                clients[i].emit('chat request', {
+                    id: socket.id,
+                    name: socket.name
+                });
+            }
+        }
+    });
+
+    socket.on('offer', function(id, data){
+        console.log('====   offer ', id);
+        var clients = io.sockets.clients(CM);
+        for(var i in clients){
+            if(clients[i].id === id){
+                clients[i].emit('offer', socket.id, data);
+            }
+        }
+    });
+
+    socket.on('answer', function(id, data){
+        console.log('====   answer ', id);
+        var clients = io.sockets.clients(CM);
+        for(var i in clients){
+            if(clients[i].id === id){
+                clients[i].emit('answer', socket.id, data);
+            }
+        }
+    });
+
+    socket.on('candidate', function(id, data){
+        console.log('====   candidate ', id);
+        var clients = io.sockets.clients(CM);
+        for(var i in clients){
+            if(clients[i].id === id){
+                clients[i].emit('candidate', data);
+            }
+        }
+    })
+
 });
 
 
