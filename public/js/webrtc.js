@@ -25,9 +25,19 @@ function trim(str){
 function flushUserList(elem, data){
     elem.innerHTML = '';
     for(var i=0;i<data.length;i++){
-        elem.innerHTML += '<label value="' + data[i]["id"] + '">' + data[i].name + '</label>';
+        var label = document.createElement('label');
+        var text = document.createTextNode(data[i].name);
+        label.appendChild(text);
+        label.setAttribute('id', data[i].id);
+        label.onclick = function(e){
+            // alert('click' + e.target.getAttribute('id'));
+            var id = e.target.getAttribute('id');
+            // console.log(socket.socket.sessionid);
+            socket.emit('request chat', id);
+        }
+        elem.appendChild(label);
     }
-}
+};
 // navigator.getUserMedia({
 //     video: {
 //         mandatory: {
@@ -54,10 +64,10 @@ function errorCallback(err) {
 }
 
 //  begin
-var username = trim(prompt('Enter name:'));
+// var username = trim(prompt('Enter name:'));
+var username = 'visitor ' + Math.floor(Math.random() * 10);
 
 var userListDiv = document.getElementById('div-users');
-
 
 var socket = io.connect(location.origin);
 
@@ -66,15 +76,19 @@ if(!username){
 }
 socket.emit('online', username);
 
+
 socket.on('online', function(data){
-    console.log('online');
+    console.log('====   online');
     console.log(data);
     flushUserList(userListDiv, JSON.parse(data));
 });
 socket.on('offline', function(data){
-    console.log('==== offline');
+    console.log('====   offline');
     console.log(data);
     flushUserList(userListDiv, JSON.parse(data));
+});
+socket.on('chat', function(data){
+
 });
 
 
