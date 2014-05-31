@@ -3,15 +3,16 @@
 //Adapter browser
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
 window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
-var RTCPeerConnection = RTCPeerConnection || webkitRTCPeerConnection || mozRTCPeerConnection;
-var RTCSessionDescription = RTCSessionDescription || mozRTCSessionDescription;
-var RTCIceCandidate = RTCIceCandidate || mozRTCIceCandidate;
+var RTCPeerConnection = RTCPeerConnection;
+var RTCSessionDescription = RTCSessionDescription;
+var RTCIceCandidate = RTCIceCandidate;
 
 
 // var name = trim(prompt('Enter name:'));
 var name = 'visitor ' + Math.floor(Math.random() * 10);
 var started = false;
 var requestSocketId;
+var initiator = false;
 
 var localStream;
 var remoteStream;
@@ -46,7 +47,12 @@ if(navigator.mozGetUserMedia){
             'url': 'stun:23.21.150.121'
         }]
     };
+    RTCPeerConnection = mozRTCPeerConnection;
+    RTCSessionDescription = mozRTCSessionDescription;
+    RTCIceCandidate = mozRTCIceCandidate;
+
 }else if(navigator.webkitGetUserMedia){
+    RTCPeerConnection = webkitRTCPeerConnection;
 }
 
 if(!name){
@@ -64,11 +70,18 @@ socket.on('offline', function(data){
     flushUserList(userListDiv, JSON.parse(data));
 });
 socket.on('chat request', function(data) {
-    console.log('==== chat request: ', data.id);
+    console.log('====   chat request: ', data.id);
     var ok = confirm('Whether to accept ' + data.name + ' video chat request ?');
     if(ok){
         requestSocketId = data.id;
         getUserMedia();
+    }
+});
+socket.on('stream ok', function(id){
+    requestSocketId = id;
+    if(initiator){
+        getUserMedia();
+    }else{
         createPeerConnection();
         pc.createOffer(
             function setLocalAndSendOffer(sessionDescription) {
@@ -123,10 +136,10 @@ function flushUserList(elem, data){
         label.appendChild(text);
         label.setAttribute('id', data[i].id);
         label.onclick = function(e){
-            // alert('click' + e.target.getAttribute('id'));
             var socketId = e.target.getAttribute('id');
             // console.log(socket.socket.sessionid);
-            getUserMedia();
+            // getUserMedia();
+            initiator = true;
             socket.emit('chat request', {
                 id: socketId,
                 name: name
@@ -150,20 +163,23 @@ function getUserMedia() {
     }, function successCallback(stream) {
         localStream = stream;
         attachMediaStream(localVideo, localStream);
+        socket.emit('stream ok', requestSocketId);
     }, onError)
 }
 
 function createPeerConnection() {
     try {
         pc = new RTCPeerConnection(pcConfig, pcConstraints);
+
         pc.addStream(localStream);
+
         pc.onicecandidate = function handleIceCandidate(event) {
-            console.log('====   handleIceCandidate event: ', event);
+            // console.log('====   onicecandidate event: ', event);
             if (event.candidate) {
                 socket.emit('candidate', requestSocketId, {
-                    // type: 'candidate',
+                    type: 'candidate',
                     label: event.candidate.sdpMLineIndex,
-                    // id: event.candidate.sdpMid,
+                    id: event.candidate.sdpMid,
                     candidate: event.candidate.candidate
                 });
             } else {
@@ -177,6 +193,7 @@ function createPeerConnection() {
     }
 
     pc.onaddstream = function handleRemoteStreamAdded(event) {
+        console.log('====   onaddstream event: ', event);
         attachMediaStream(remoteVideo, event.stream);
         remoteStream = event.stream;
     };

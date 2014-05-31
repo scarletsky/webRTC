@@ -61,6 +61,16 @@ io.on('connection', function(socket) {
         }
     });
 
+    socket.on('stream ok', function(id){
+        console.log('====   stream ok', id);
+        var clients = io.sockets.clients(CM);
+        for(var i in clients){
+            if(clients[i].id === id){
+                clients[i].emit('stream ok', socket.id);
+            }
+        }
+    });
+
     socket.on('offer', function(id, data){
         console.log('====   offer ', id);
         var clients = io.sockets.clients(CM);
