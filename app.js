@@ -4,13 +4,6 @@ var http = require('http');
 var express = require('express');
 var app = express();
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(function(req, res, next) {
-    console.log('Add access alllow');
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Credentials', true);
-    res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-    next();
-});
 
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
