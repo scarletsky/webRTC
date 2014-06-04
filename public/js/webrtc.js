@@ -149,14 +149,14 @@ function flushUserList(elem, data){
     }
 };
 
-
+#video scale  4:3
 function getUserMedia() {
     started = true;
     navigator.getUserMedia({
         video: {
             mandatory: {
                 minWidth: 480,
-                minHeight: 480
+                minHeight: 360
             }
         },
         audio: false
