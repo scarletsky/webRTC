@@ -69,6 +69,7 @@ socket.on('offline', function(data){
     console.log('====   offline: ', data);
     flushUserList(userListDiv, JSON.parse(data));
 });
+// get user media
 socket.on('chat request', function(data) {
     console.log('====   chat request: ', data.id);
     var ok = confirm('Whether to accept ' + data.name + ' video chat request ?');
@@ -77,6 +78,7 @@ socket.on('chat request', function(data) {
         getUserMedia();
     }
 });
+// create offer
 socket.on('stream ok', function(id){
     requestSocketId = id;
     if(initiator){
@@ -85,25 +87,32 @@ socket.on('stream ok', function(id){
         createPeerConnection();
         pc.createOffer(
             function setLocalAndSendOffer(sessionDescription) {
-                pc.setLocalDescription(sessionDescription);
-                socket.emit('offer', requestSocketId, sessionDescription);
+                pc.setLocalDescription(sessionDescription, function () {
+                    socket.emit('offer', requestSocketId, sessionDescription);
+                }, onError);
             },
             onError,
             sdpConstraints
         );
     }
 });
+// get offer
 socket.on('offer', function(id, data){
     requestSocketId = id;
     createPeerConnection();
-    pc.setRemoteDescription(new RTCSessionDescription(data));
-    pc.createAnswer(function setLocalAndSendAnswer(sessionDescription){
-        pc.setLocalDescription(sessionDescription);
-        socket.emit('answer', requestSocketId, sessionDescription); 
-    }, onError, sdpConstraints);
+    pc.setRemoteDescription(new RTCSessionDescription(data), function () {
+        pc.createAnswer(function setLocalAndSendAnswer(sessionDescription){
+            pc.setLocalDescription(sessionDescription, function () {
+                socket.emit('answer', requestSocketId, sessionDescription); 
+            }, onError);
+        }, onError, sdpConstraints);
+    });
 });
+// get answer
 socket.on('answer', function(id, data){
-    pc.setRemoteDescription(new RTCSessionDescription(data));
+    pc.setRemoteDescription(new RTCSessionDescription(data), function () {
+        console.log('---ping---');
+    });
 });
 socket.on('candidate', function(data){
     var candidate = new RTCIceCandidate({
@@ -204,17 +213,3 @@ function createPeerConnection() {
 function onError(e) {
     console.log('onError : ', e);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
