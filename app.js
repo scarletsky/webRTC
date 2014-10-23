@@ -92,7 +92,15 @@ io.on('connection', function(socket) {
                 clients[i].emit('candidate', data);
             }
         }
-    })
+    });
+
+    socket.on('ping', function(id, data){
+        console.log('====   ping ', id);
+        var clients = io.sockets.clients(CM);
+        for(var i in clients){
+            clients[i].emit('ping', id);
+        }
+    });
 
 });
 

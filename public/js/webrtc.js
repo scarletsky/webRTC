@@ -8,8 +8,7 @@ var RTCSessionDescription = RTCSessionDescription;
 var RTCIceCandidate = RTCIceCandidate;
 
 
-var name = trim(prompt('Enter name:')) || 'visitor ' + Math.floor(Math.random() * 10);
-// var name = 'visitor ' + Math.floor(Math.random() * 10);
+var name = 'visitor ' + Math.floor(Math.random() * 100);
 var started = false;
 var requestSocketId;
 var initiator = false;
@@ -110,10 +109,12 @@ socket.on('offer', function(id, data){
 });
 // get answer
 socket.on('answer', function(id, data){
+    requestSocketId = id;
     pc.setRemoteDescription(new RTCSessionDescription(data), function () {
-        console.log('---ping---');
+        socket.emit('ping', id);
     });
 });
+// add ice candidate
 socket.on('candidate', function(data){
     var candidate = new RTCIceCandidate({
         sdpMLineIndex: data.label,
@@ -121,7 +122,10 @@ socket.on('candidate', function(data){
     });
     pc.addIceCandidate(candidate);
 });
-
+// ping
+socket.on('ping', function (id) {
+    console.log('==== ping', id);
+});
 
 
 function attachMediaStream(video, stream){
@@ -131,11 +135,11 @@ function attachMediaStream(video, stream){
         video.src = (window.URL && window.URL.createObjectURL(stream)) || stream;
     }
     video.play();
-};
+}
 
 function trim(str){
     return str.replace(/^\s+|\s+$/g,'');
-};
+}
 
 function flushUserList(elem, data){
     elem.innerHTML = '';
@@ -153,10 +157,10 @@ function flushUserList(elem, data){
                 id: socketId,
                 name: name
             });
-        }
+        };
         elem.appendChild(label);
     }
-};
+}
 
 // video scale  4:3
 function getUserMedia() {
@@ -173,7 +177,7 @@ function getUserMedia() {
         localStream = stream;
         attachMediaStream(localVideo, localStream);
         socket.emit('stream ok', requestSocketId);
-    }, onError)
+    }, onError);
 }
 
 function createPeerConnection() {
@@ -196,7 +200,7 @@ function createPeerConnection() {
             }
         };
     } catch (e) {
-        alert('==== createPeerConnection error:')
+        alert('==== createPeerConnection error:');
         console.log(e);
         return;
     }
