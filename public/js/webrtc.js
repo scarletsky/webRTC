@@ -149,7 +149,7 @@ function flushUserList(elem, data){
     }
 };
 
-#video scale  4:3
+// video scale  4:3
 function getUserMedia() {
     started = true;
     navigator.getUserMedia({
