@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "express": "~4.2.0",
-    "socket.io": "~0.9.17"
+    "socket.io": "~0.9.17",
+    "recordrtc": "^4.0.6"
   }
 }

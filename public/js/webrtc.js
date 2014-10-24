@@ -16,6 +16,8 @@ var initiator = false;
 var localStream;
 var remoteStream;
 var pc;
+var audioRecordRTC;
+var videoRecordRTC;
 var pcConfig = {
     'iceServers': [{
         'url': 'stun:stun.l.google.com:19302'
@@ -31,7 +33,11 @@ var sdpConstraints = {};
 var userListDiv = document.getElementById('div-users');
 var localVideo = document.getElementById('localVideo');
 var remoteVideo = document.getElementById('remoteVideo');
-var stopVideoButton = document.getElementById('stopVideo');
+var localVideoPreview = document.getElementById('localVideoPreview');
+var localAudioPreview = document.getElementById('localAudioPreview');
+
+var startButton = document.getElementById('start');
+var stopButton = document.getElementById('stop');
 
 var socket = io.connect(location.origin);
 
@@ -126,11 +132,24 @@ socket.on('candidate', function(data){
 // ping
 socket.on('ping', function (id) {
     console.log('==== ping', id);
+    audioRecordRTC.startRecording();
+    videoRecordRTC.startRecording();
 });
 // stop
 socket.on('stop', function (id) {
     stopVideoChat();
+    audioRecordRTC.stopRecording(function (audioURL) {
+        console.timeEnd('audio');
+        localAudioPreview.src = audioURL;
+        // audioRecordRTC.save('audio-' + randomString());
+    });
+    videoRecordRTC.stopRecording(function (videoURL) {
+        console.timeEnd('video');
+        localVideoPreview.src = videoURL;
+        // videoRecordRTC.save('video-' + randomString());
+    });
 });
+
 
 function attachMediaStream(video, stream){
     if(video.mozSrcObject !== undefined){
@@ -138,12 +157,8 @@ function attachMediaStream(video, stream){
     }else{
         video.src = (window.URL && window.URL.createObjectURL(stream)) || stream;
     }
-    video.play();
 }
 
-function trim(str){
-    return str.replace(/^\s+|\s+$/g,'');
-}
 
 function flushUserList(elem, data){
     elem.innerHTML = '';
@@ -176,11 +191,34 @@ function getUserMedia() {
                 minHeight: 360
             }
         },
-        audio: false
+        audio: true
     }, function successCallback(stream) {
+        console.time('video');
+        console.time('audio');
+
         localStream = stream;
+
+        // on loaded metadata
+        localVideo.onloadedmetadata = function () {
+
+            console.log('video loaded');
+
+            audioRecordRTC = RecordRTC(stream, {
+                onAudioProcessStarted: function () {
+                    videoRecordRTC.startRecording();
+                }
+            });
+
+            videoRecordRTC = RecordRTC(stream, {
+                type: 'video',
+                video: localVideo
+            });
+
+            audioRecordRTC.startRecording();
+        }
+
         attachMediaStream(localVideo, localStream);
-        socket.emit('stream ok', requestSocketId);
+        // socket.emit('stream ok', requestSocketId);
     }, onError);
 }
 
@@ -238,6 +276,23 @@ function onError(e) {
     console.log('onError : ', e);
 }
 
-stopVideoButton.addEventListener('click', function (e) {
-    socket.emit('stop', requestSocketId);
+function randomString () {
+    return Math.random().toString(36).substring(7);
+}
+
+startButton.addEventListener('click', function (e) {
+    getUserMedia();
+});
+
+stopButton.addEventListener('click', function (e) {
+    stopVideoChat();
+    audioRecordRTC.stopRecording(function (audioURL) {
+        console.timeEnd('audio');
+        localAudioPreview.src = audioURL;
+    });
+    videoRecordRTC.stopRecording(function (videoURL) {
+        console.timeEnd('video');
+        localVideoPreview.src = videoURL;
+    });
+    // socket.emit('stop', requestSocketId);
 });

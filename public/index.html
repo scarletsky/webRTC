@@ -15,7 +15,8 @@
         height: 100%;
         margin-left: 200px;
     }
-    #div-video > video {
+    #div-video > video,
+    #div-preview > video {
         width: 480px;
         height: 360px;
         border: 1px dashed;
@@ -62,13 +63,20 @@
         </div>
     </div>
     <div id="div-video">
-        <video id="localVideo"></video>
-        <video id="remoteVideo"></video>
+        <video id="localVideo" controls="controls" autoplay></video>
+        <video id="remoteVideo" controls="controls" autoplay></video>
 
         <div>
-            <button id="stopVideo">stop</button>
+            <button id="start">start</button>
+            <button id="stop">stop</button>
+        </div>
+
+        <div id="div-preview">
+            <video id="localVideoPreview" controls="controls" autoplay></video>
+            <audio id="localAudioPreview" controls="controls" autoplay></audio>
         </div>
     </div>
+
  
     <script src='/recordrtc/recordRTC.js'></script>
     <script src='/socket.io/socket.io.js'></script>
