@@ -102,6 +102,13 @@ io.on('connection', function(socket) {
         }
     });
 
+    socket.on('stop', function (id) {
+        console.log('==== stop ', id);
+        var clients = io.sockets.clients(CM);
+        for(var i in clients){
+            clients[i].emit('stop', id);
+        }
+    });
 });
 
 

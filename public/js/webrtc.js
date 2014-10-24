@@ -31,6 +31,7 @@ var sdpConstraints = {};
 var userListDiv = document.getElementById('div-users');
 var localVideo = document.getElementById('localVideo');
 var remoteVideo = document.getElementById('remoteVideo');
+var stopVideoButton = document.getElementById('stopVideo');
 
 var socket = io.connect(location.origin);
 
@@ -126,7 +127,10 @@ socket.on('candidate', function(data){
 socket.on('ping', function (id) {
     console.log('==== ping', id);
 });
-
+// stop
+socket.on('stop', function (id) {
+    stopVideoChat();
+});
 
 function attachMediaStream(video, stream){
     if(video.mozSrcObject !== undefined){
@@ -214,6 +218,26 @@ function createPeerConnection() {
     pc.onremovestream = onError;
 }
 
+function stopVideoChat () {
+    localVideo.src = '';
+    remoteVideo.src = '';
+
+    if (localStream) {
+        localStream.stop();
+        console.log('==== local comera stop');
+    }
+
+    if (pc) {
+        pc.close();
+        pc = null;
+        console.log('==== peer connection closed');
+    }
+}
+
 function onError(e) {
     console.log('onError : ', e);
 }
+
+stopVideoButton.addEventListener('click', function (e) {
+    socket.emit('stop', requestSocketId);
+});

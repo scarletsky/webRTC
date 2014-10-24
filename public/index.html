@@ -21,6 +21,11 @@
         border: 1px dashed;
         margin: 20px;
     }
+    #div-video button {
+        width: 100px;
+        height: 30px;
+        margin-left: 20px;
+    }
     #div-side {
         width: 200px;
         height: 100%;
@@ -59,8 +64,13 @@
     <div id="div-video">
         <video id="localVideo"></video>
         <video id="remoteVideo"></video>
-    </div>
 
+        <div>
+            <button id="stopVideo">stop</button>
+        </div>
+    </div>
+ 
+    <script src='/recordrtc/recordRTC.js'></script>
     <script src='/socket.io/socket.io.js'></script>
     <script src='js/webrtc.js'></script>
 </body>
